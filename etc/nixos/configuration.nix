@@ -43,7 +43,7 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
    environment.pathsToLink = [ "/libexec" ];
-   nixpkgs.config.allowUnfree = true;
+   #nixpkgs.config.allowUnfree = true;
    environment.systemPackages = with pkgs; [
      wget
      vim
@@ -58,9 +58,47 @@
      tmux
      spotify
      discord
-     #(python3.withPackages(ps: with ps; [ numpy ]))
+     tdlib
+     imagemagick
+     killall
+     gocryptfs
+     signal-desktop
+     youtube-dl
+     (python3.withPackages(ps: with ps; [ numpy pillow]))
+     bc
+     tdesktop
+     qbittorrent
+     mplayer
+     docker-compose
+     openssl
+     dino
+     unrar
+     anydesk
+     octaveFull
+     xorg.xbacklight
+     gnumake
+     gcc
+     go
+     jq
+     curlie
+     scrot
    ];
 
+services.emacs.enable = true;
+virtualisation.docker.enable = true;
+environment.variables = { GOROOT = [ "${pkgs.go.out}/share/go" ]; };
+
+nixpkgs = {
+  config = {
+    packageOverrides = pkgs: {
+      emacs = pkgs.emacs.override {
+        imagemagick = pkgs.imagemagickBig;
+      };
+
+    };
+   allowUnfree = true;
+  };
+};
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
   # programs.mtr.enable = true;
@@ -73,7 +111,7 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-   services.openssh.enable = true;
+   services.openssh.enable = false;
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -130,7 +168,7 @@
   # Define a user account. Don't forget to set a password with ‘passwd’.
    users.users.edu = {
      isNormalUser = true;
-     extraGroups = [ "wheel"  "networkmanager" ]; # Enable ‘sudo’ for the user.
+     extraGroups = [ "wheel"  "networkmanager" "docker" ]; # Enable ‘sudo’ for the user.
    };
 
   # This value determines the NixOS release from which the default
