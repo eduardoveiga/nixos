@@ -40,6 +40,9 @@
   # Set your time zone.
    time.timeZone = "America/Sao_Paulo";
 
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
    environment.pathsToLink = [ "/libexec" ];
@@ -47,31 +50,28 @@
    environment.systemPackages = with pkgs; [
      wget
      vim
-     firefox 
      emacs 
      magic-wormhole
      networkmanagerapplet
-     git
+     gitFull
      rofi
      sakura
      glibcLocales
      tmux
      spotify
-     discord
+   #  discord
      tdlib
      imagemagick
      killall
-     gocryptfs
+   #  gocryptfs
      signal-desktop
      youtube-dl
-     (python3.withPackages(ps: with ps; [ numpy pillow]))
      bc
      tdesktop
      qbittorrent
      mplayer
      docker-compose
      openssl
-     dino
      unrar
      anydesk
      octaveFull
@@ -82,17 +82,75 @@
      jq
      curlie
      scrot
-   ];
+     meld
+     httpie
+     xclip
+     dunst
+     qbittorrent
+     libnotify
+     speedtest-cli
+     p7zip
+     trash-cli
+     lxrandr
+     pavucontrol
+     fim
+     viu
+     zsh
+     python3
+     file
+     bash
+     bleachbit
+     wildmidi
+     denemo
+     musescore
+     ipfs
+     zeronet
+     utox
+     ricochet
+     tor
+     fractal
+     mumble
+     syncthing
+     alacritty
+     ssb-patchwork
+     keybase
+     keybase-gui
+     standardnotes
+     lf
+     quiterss
+     giara
+     certbot
+     dino
+     firefox
+     pidgin-with-plugins
+     sshpass
+     xdotool
+     #exodus
+     #nano-wallet
+     gnupg
+     gnome.seahorse
+     electron-cash
+     electrum
+     electrum-ltc
+    gparted
+     gnome.gnome-disk-utility
 
+];
 services.emacs.enable = true;
-virtualisation.docker.enable = true;
-environment.variables = { GOROOT = [ "${pkgs.go.out}/share/go" ]; };
+#services.emacs.package = import /home/edu/.emacs.d { pkgs = pkgs;
+#vitualisation.docker.enable = true;
+#environment.variables = { GOROOT = [ "${pkgs.go.out}/share/go" ]; };
 
+programs.gnupg.agent.enable = true;
 nixpkgs = {
   config = {
     packageOverrides = pkgs: {
+      pidgin-with-plugins  = pkgs.pidgin-with-plugins.override {
+	plugins = [ pkgs.pidginotr  pkgs.pidgin-xmpp-receipts pkgs.purple-plugin-pack pkgs.pidgin-carbons pkgs.purple-lurch ];
+    };
       emacs = pkgs.emacs.override {
         imagemagick = pkgs.imagemagickBig;
+      #  tdlib = pkgs.tdlib;
       };
 
     };
@@ -111,7 +169,8 @@ nixpkgs = {
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-   services.openssh.enable = false;
+   services.openssh.enable = true;
+   services.openssh.ports = [ 23 ];
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -124,7 +183,23 @@ nixpkgs = {
 
   # Enable sound.
    sound.enable = true;
-   hardware.pulseaudio.enable = true;
+   
+  hardware.pulseaudio = {
+    enable = true;
+    extraModules = [ pkgs.pulseaudio-modules-bt ];
+
+    # NixOS allows either a lightweight build (default) or full build of PulseAudio to be installed.
+    # Only the full build has Bluetooth support, so it must be selected here.
+    package = pkgs.pulseaudioFull;
+    };
+  
+
+hardware.bluetooth.settings = {
+  General = {
+    Enable = "Source,Sink,Media,Socket";
+  };
+};
+
 
   # Enable the X11 windowing system.
    #services.xserver.enable = true;
@@ -165,18 +240,43 @@ nixpkgs = {
     };
   };
 
+services.logind.lidSwitch = "ignore";
+
   # Define a user account. Don't forget to set a password with ‘passwd’.
    users.users.edu = {
      isNormalUser = true;
-     extraGroups = [ "wheel"  "networkmanager" "docker" ]; # Enable ‘sudo’ for the user.
+     extraGroups= [ "wheel"  "networkmanager" "docker" ];
+     packages = with pkgs; [  dunst deltachat-electron element-desktop ]; # Enable ‘sudo’ for the user.
    };
 
+   users.users.ossystems = {
+     isNormalUser = true;
+     extraGroups = [ "wheel" "networkmanager" "docker" ];
+     packages = with pkgs; [  dunst deltachat-electron element-desktop ];
+};
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "20.03"; # Did you read the comment?
+  system.stateVersion = "21.05"; # Did you read the comment?
+  system.autoUpgrade.enable = false;
+  system.autoUpgrade.allowReboot = false;
+  system.autoUpgrade.dates = "12:00";
+  #system.autoUpgrade.persistent = true;
+  services.flatpak.enable = true;
+  xdg.portal.enable = true;
+
+services = {
+    syncthing = {
+        enable = true;
+        user = "edu";
+        dataDir = "/home/edu/sync";
+        configDir = "/home/edu/.syncthing";
+    };
+};
+
+
 
 }
